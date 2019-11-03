@@ -1,0 +1,69 @@
+#compdef git-at
+
+_git_at() {
+  # NOTE: called from _git
+  if [[ $curcontext == ":complete:git:argument-rest" ]]; then
+    emulate -L zsh
+  fi
+
+  local cur=${words[CURRENT]}
+  local prev=${words[CURRENT - 1]}
+
+  if [[ $curcontext == ":complete:git-at:" ]]; then
+    if [[ ${#words[@]} -ge 3 ]]; then
+      words_=("${words[@]}")
+      tokens_=("${tokens[@]}")
+      CURRENT_=$CURRENT
+
+      # NOTE: this eval prevent shfmt parse error
+      eval 'words=(git "${(@)words:2}")'
+      eval 'tokens=(git "${(@)tokens:2}")'
+      CURRENT=$((CURRENT - 1))
+      curcontext=':complete:git:'
+      service='git'
+      _git
+      emulate -L zsh
+      exit_code=$?
+      words=("${words_[@]}")
+      tokens=("${tokens_[@]}")
+      CURRENT=$CURRENT_
+      return $exit_code
+    else
+      _message -r 'git-at <repo_dirpath> [commands]...'
+      _files
+      return
+    fi
+  else
+    if [[ $CURRENT -ge 3 ]]; then
+      # NOTE: to avoid '(eval):1: no matches found: *:globbed-files'
+      # git at . add -[tab]
+      if [[ ${words[-1]} == '-' ]]; then
+        return
+      fi
+      words_=("${words[@]}")
+      tokens_=("${tokens[@]}")
+      CURRENT_=$CURRENT
+
+      # NOTE: this eval prevent shfmt parse error
+      eval 'words=(git "${(@)words:3}" "")'
+      eval 'tokens=(git "${(@)tokens:3}" "")'
+      CURRENT=$((CURRENT - 1))
+      service='git'
+      curcontext=":complete:git:"
+      _git
+      emulate -L zsh
+      exit_code=$?
+      words=("${words_[@]}")
+      tokens=("${tokens_[@]}")
+      CURRENT=$CURRENT_
+      return $exit_code
+    else
+      _message -r 'git-at <repo_dirpath> [commands]...'
+      # NOTE: at _git_xxx _files are added automatically
+      # _files
+      return
+    fi
+  fi
+}
+
+_git_at
